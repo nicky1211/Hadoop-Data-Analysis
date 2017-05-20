@@ -1,0 +1,34 @@
+create database assigq1;
+
+use assigq1;
+
+
+CREATE TABLE books (ISBN STRING, Title STRING, Author STRING, Year_of_Pub STRING, Publisher STRING, Image_URL_S STRING, Image_URL_M STRING, Image_URL_L STRING ) ROW FORMAT DELIMITED FIELDS TERMINATED BY "<>" STORED AS TEXTFILE;
+LOAD DATA LOCAL INPATH '/home/manick/Assig/Data/BX-Books.csv' OVERWRITE INTO TABLE books;
+
+
+Find out the frequency of books published each year
+
+	SELECT Year_of_Pub, count(DISTINCT Title) as Count_of_Pubs from books group by Year_of_Pub sort by Count_of_Pubs DESC;
+
+Find out in which year the maximum number of books were published.
+
+	SELECT Year_of_Pub, count(DISTINCT Title) as Count_of_Pubs from books group by Year_of_Pub sort by Count_of_Pubs DESC limit 1;
+
+Find out how many book were published based on ranking in the year 2002.
+	
+	CREATE TABLE book_rating (USER_ID STRING, ISBN STRING, Rating STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY "<>" STORED AS TEXTFILE;
+	LOAD DATA LOCAL INPATH '/home/manick/Assig/Data/BX-Book-Ratings.csv' OVERWRITE INTO TABLE book_rating;
+
+	create a net table by joining both the tables
+
+	CREATE TABLE combined_table (ISBN STRING, Year_of_Pub INT, Title STRING, Rating INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+	INSERT OVERWRITE TABLE combined_table
+	select a.ISBN, regexp_replace(regexp_replace(a.Year_of_Pub,"\"",""),">",""), a.Title, b.Rating
+	from books a join book_rating_int b on a.ISBN = b.ISBN;
+
+
+
+	Create Table rating_table (Rating INT, Count_of_Books INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ",";
+	INSERT OVERWRITE TABLE rating_table
+	Select Rating, count(Title) from combined_table where Year_of_Pub = 2002 group by Rating order by Rating asc;
